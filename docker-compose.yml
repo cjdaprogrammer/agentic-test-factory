@@ -1,0 +1,27 @@
+# docker compose run --rm bdd            -> full BDD suite
+# docker compose run --rm smoke          -> @smoke scenarios only
+# docker compose run --rm visual         -> screenshot comparisons
+# docker compose run --rm visual-update  -> regenerate screenshot baselines
+x-base: &base
+  build: .
+  env_file:
+    - path: .env
+      required: false
+  volumes:
+    - ./reports:/app/reports
+    - ./tests/__screenshots__:/app/tests/__screenshots__
+    - ./test-results:/app/test-results
+
+services:
+  bdd:
+    <<: *base
+    command: npm run test:bdd
+  smoke:
+    <<: *base
+    command: npm run test:smoke
+  visual:
+    <<: *base
+    command: npm run test:visual
+  visual-update:
+    <<: *base
+    command: npm run test:visual:update

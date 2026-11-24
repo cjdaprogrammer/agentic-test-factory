@@ -1,0 +1,47 @@
+name: Nightly full suite
+
+on:
+  schedule:
+    - cron: '0 18 * * *' # 02:00 in the Philippines (UTC+8)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  full-suite:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: mcr.microsoft.com/playwright:v1.49.1-noble # keep in sync with package.json
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+      - name: BDD suite
+        run: npm run test:bdd
+      - name: Visual regression
+        if: always()
+        run: npm run test:visual
+      - name: AI failure summary (offline fallback if no key)
+        if: always()
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          npm run ai:summarize
+          npm run ai:locator-fix
+      - name: Publish results to Zephyr (dry run if no token)
+        if: always()
+        env:
+          ZEPHYR_API_TOKEN: ${{ secrets.ZEPHYR_API_TOKEN }}
+          ZEPHYR_PROJECT_KEY: ${{ vars.ZEPHYR_PROJECT_KEY }}
+          ZEPHYR_TEST_CYCLE_KEY: ${{ vars.ZEPHYR_TEST_CYCLE_KEY }}
+        run: npm run zephyr:publish
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-reports
+          path: reports/
+          if-no-files-found: ignore

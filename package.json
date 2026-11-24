@@ -1,0 +1,33 @@
+{
+  "name": "agentic-test-factory",
+  "version": "1.0.0",
+  "description": "Agentic E-commerce Test Factory: Jira story -> AI-proposed plan -> reviewed BDD scenarios -> automated run -> report",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "shop": "ts-node demo-shop/server.ts",
+    "test:bdd": "cucumber-js",
+    "test:smoke": "cucumber-js --tags @smoke",
+    "test:visual": "playwright test --grep-invert @percy",
+    "test:visual:update": "playwright test --grep-invert @percy --update-snapshots",
+    "test:percy": "percy exec -- playwright test --grep @percy",
+    "story:fetch": "ts-node integrations/jira.ts",
+    "ai:plan": "ts-node ai/generate-test-plan.ts",
+    "ai:gaps": "ts-node ai/suggest-gaps.ts",
+    "ai:approve": "ts-node ai/approve-draft.ts",
+    "ai:summarize": "ts-node ai/summarize-failures.ts",
+    "ai:locator-fix": "ts-node ai/suggest-locator-fix.ts",
+    "zephyr:publish": "ts-node integrations/zephyr.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@cucumber/cucumber": "^11.1.0",
+    "@percy/cli": "^1.30.0",
+    "@percy/playwright": "^1.0.7",
+    "@playwright/test": "1.49.1",
+    "@types/node": "^20.14.0",
+    "dotenv": "^16.4.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  }
+}

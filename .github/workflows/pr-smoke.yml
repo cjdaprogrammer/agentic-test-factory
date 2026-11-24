@@ -1,0 +1,33 @@
+name: PR smoke tests
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Type check
+        run: npm run typecheck
+      - name: Run @smoke scenarios
+        run: npm run test:smoke
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-reports
+          path: reports/
+          if-no-files-found: ignore

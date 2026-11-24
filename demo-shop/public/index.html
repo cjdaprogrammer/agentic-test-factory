@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QA Shop</title>
+  <style>
+    :root { --bg:#fafaf7; --fg:#1d1d1b; --muted:#5f5f5a; --line:#dcdcd4; --accent:#1f5eff; --ok:#0a7a3d; --err:#b42318; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.5 system-ui, sans-serif; background: var(--bg); color: var(--fg); }
+    header, main { max-width: 880px; margin: 0 auto; padding: 16px 20px; }
+    header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); }
+    h1 { margin: 0; font-size: 1.5rem; }
+    h2 { font-size: 1.15rem; margin-top: 28px; }
+    ul { list-style: none; padding: 0; margin: 0; }
+    .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+    button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: #fff; cursor: pointer; }
+    button.secondary { background: transparent; color: var(--accent); }
+    input { font: inherit; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; }
+    label { display: block; font-weight: 600; margin-bottom: 4px; }
+    .discount-row { display: flex; gap: 8px; align-items: end; flex-wrap: wrap; }
+    #discount-message { min-height: 1.5em; color: var(--muted); }
+    #discount-message[data-state="ok"] { color: var(--ok); }
+    #discount-message[data-state="error"] { color: var(--err); }
+    dl { display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; max-width: 320px; }
+    dd { margin: 0; text-align: right; }
+    .total { font-weight: 700; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>QA Shop</h1>
+    <a href="#cart">Cart (<span id="cart-count">0</span>)</a>
+  </header>
+
+  <main>
+    <section aria-labelledby="products-heading">
+      <h2 id="products-heading">Products</h2>
+      <ul id="products"></ul>
+    </section>
+
+    <section id="cart" aria-labelledby="cart-heading">
+      <h2 id="cart-heading">Your cart</h2>
+      <ul id="cart-items" aria-label="Cart items"></ul>
+
+      <form id="discount-form" novalidate>
+        <div class="discount-row">
+          <div>
+            <label for="discount-code">Discount code</label>
+            <input id="discount-code" name="code" autocomplete="off">
+          </div>
+          <button type="submit">Apply</button>
+          <button type="button" id="remove-discount" class="secondary" hidden>Remove discount</button>
+        </div>
+      </form>
+      <p id="discount-message" role="status"></p>
+
+      <dl>
+        <dt>Subtotal</dt><dd data-testid="subtotal">$0.00</dd>
+        <dt>Discount</dt><dd data-testid="discount">$0.00</dd>
+        <dt class="total">Total</dt><dd class="total" data-testid="total">$0.00</dd>
+      </dl>
+    </section>
+  </main>
+
+  <script>
+    // Prices in cents. Discount rules mirror the acceptance criteria in stories/PROJ-101.md.
+    const PRODUCTS = [
+      { name: 'Backpack', price: 5000 },
+      { name: 'Water Bottle', price: 2000 },
+      { name: 'Notebook', price: 1000 },
+    ];
+    const CODES = {
+      SAVE10:    { type: 'percent', value: 10 },
+      WELCOME5:  { type: 'fixed', value: 500, minSubtotal: 2000 },
+      EXPIRED20: { type: 'percent', value: 20, expired: true },
+    };
+
+    const cart = [];
+    let applied = null;
+
+    const $ = (id) => document.getElementById(id);
+    const money = (cents) => '$' + (cents / 100).toFixed(2);
+    const subtotal = () => cart.reduce((sum, item) => sum + item.price, 0);
+
+    function discountAmount() {
+      if (!applied) return 0;
+      const def = CODES[applied];
+      const raw = def.type === 'percent' ? Math.round(subtotal() * def.value / 100) : def.value;
+      return Math.min(raw, subtotal());
+    }
+
+    function say(text, state) {
+      const el = $('discount-message');
+      el.textContent = text;
+      el.dataset.state = state || '';
+    }
+
+    function render() {
+      $('cart-count').textContent = String(cart.length);
+      $('cart-items').innerHTML = cart.length
+        ? cart.map((i) => `<li class="row"><span>${i.name}</span><span>${money(i.price)}</span></li>`).join('')
+        : '<li class="row">Your cart is empty</li>';
+
+      const sub = subtotal();
+      const disc = discountAmount();
+      document.querySelector('[data-testid="subtotal"]').textContent = money(sub);
+      document.querySelector('[data-testid="discount"]').textContent = disc ? '-' + money(disc) : money(0);
+      document.querySelector('[data-testid="total"]').textContent = money(sub - disc);
+      $('remove-discount').hidden = !applied;
+    }
+
+    $('products').innerHTML = PRODUCTS.map((p) =>
+      `<li class="row"><span>${p.name} &middot; ${money(p.price)}</span>` +
+      `<button type="button" data-name="${p.name}" aria-label="Add ${p.name} to cart">Add to cart</button></li>`
+    ).join('');
+
+    $('products').addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-name]');
+      if (!btn) return;
+      cart.push(PRODUCTS.find((p) => p.name === btn.dataset.name));
+      render();
+    });
+
+    $('discount-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const code = $('discount-code').value.trim().toUpperCase();
+
+      if (!cart.length) return say('Add an item before applying a code', 'error');
+      if (!code) return say('Enter a discount code', 'error');
+      if (applied) return say('A discount code is already applied', 'error');
+
+      const def = CODES[code];
+      if (!def) return say('Invalid discount code', 'error');
+      if (def.expired) return say('This code has expired', 'error');
+      if (def.minSubtotal && subtotal() < def.minSubtotal) {
+        return say(`Minimum spend of ${money(def.minSubtotal)} required`, 'error');
+      }
+
+      applied = code;
+      $('discount-code').value = '';
+      render();
+      say(`Discount applied: ${code}`, 'ok');
+    });
+
+    $('remove-discount').addEventListener('click', () => {
+      applied = null;
+      render();
+      say('Discount removed', '');
+    });
+
+    render();
+  </script>
+</body>
+</html>

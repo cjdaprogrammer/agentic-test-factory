@@ -1,3 +1,4 @@
+
 name: Nightly full suite
 
 on:
@@ -13,17 +14,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     container:
-      image: mcr.microsoft.com/playwright:v1.49.1-noble # keep in sync with package.json
+      image: mcr.microsoft.com/playwright:v1.49.1-noble
+
     steps:
       - uses: actions/checkout@v4
+
       - name: Install dependencies
         run: |
           if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
       - name: BDD suite
         run: npm run test:bdd
+
       - name: Visual regression
         if: always()
         run: npm run test:visual
+
       - name: AI failure summary (offline fallback if no key)
         if: always()
         env:
@@ -31,13 +37,30 @@ jobs:
         run: |
           npm run ai:summarize
           npm run ai:locator-fix
-      - name: Publish results to Zephyr (dry run if no token)
+
+      # Temporary diagnostic step
+      - name: Verify Zephyr configuration
+        env:
+          ZEPHYR_PROJECT_KEY: ${{ vars.ZEPHYR_PROJECT_KEY }}
+          ZEPHYR_TEST_CYCLE_KEY: ${{ vars.ZEPHYR_TEST_CYCLE_KEY }}
+          ZEPHYR_API_TOKEN: ${{ secrets.ZEPHYR_API_TOKEN }}
+        run: |
+          echo "Project key: '${ZEPHYR_PROJECT_KEY}'"
+          echo "Cycle key: '${ZEPHYR_TEST_CYCLE_KEY}'"
+          if [ -z "$ZEPHYR_API_TOKEN" ]; then
+            echo "Zephyr token: MISSING"
+          else
+            echo "Zephyr token: PRESENT"
+          fi
+
+      - name: Publish results to Zephyr
         if: always()
         env:
           ZEPHYR_API_TOKEN: ${{ secrets.ZEPHYR_API_TOKEN }}
           ZEPHYR_PROJECT_KEY: ${{ vars.ZEPHYR_PROJECT_KEY }}
           ZEPHYR_TEST_CYCLE_KEY: ${{ vars.ZEPHYR_TEST_CYCLE_KEY }}
         run: npm run zephyr:publish
+
       - name: Upload reports
         if: always()
         uses: actions/upload-artifact@v4

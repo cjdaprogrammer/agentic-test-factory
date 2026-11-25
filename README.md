@@ -1,113 +1,100 @@
 # Agentic E-commerce Test Factory
 
-**Playwright · TypeScript · Cucumber.js (BDD) · Page Object Model · Docker · GitHub Actions · AI-Assisted Testing**
+**Playwright · TypeScript · Cucumber.js · Page Object Model · Docker · GitHub Actions · AI-Assisted QA**
 
-An AI-assisted QA automation platform that transforms Jira user stories into reviewed BDD scenarios, executes automated Playwright tests, performs visual regression testing, and connects test results with Jira and Zephyr Scale.
+An AI-assisted QA automation platform that connects requirements analysis, BDD test development, browser automation, visual regression testing, and test management reporting.
 
-AI assists with test planning, scenario generation, gap analysis, and failure investigation. **A human must review and approve AI-generated scenarios before they can be executed.**
+The platform uses AI to assist with test planning, scenario generation, coverage analysis, and failure investigation. Human review and approval are required before AI-generated scenarios can become executable tests.
 
-## Architecture
+**Repository:** [github.com/cjdaprogrammer/agentic-test-factory](https://github.com/cjdaprogrammer/agentic-test-factory)
 
-```text
-                  JIRA USER STORY
-                         |
-                         v
-                  story:fetch
-                         |
-                         v
-                   ai:plan
-                         |
-             +-----------+-----------+
-             |                       |
-             v                       v
-       Test Plan (.md)        BDD Draft (.feature)
-                                     |
-                                     v
-                              Human Review
-                                     |
-                                     v
-                                  ai:approve
-                                     |
-                                     v
-                           Approved BDD Scenario
-                               (@reviewed)
-                                     |
-                                     v
-                         Cucumber.js + Playwright
-                              Page Object Model
-                                     |
-                  +------------------+------------------+
-                  |                  |                  |
-                  v                  v                  v
-             BDD Reports       Visual Testing       Test Evidence
-                  |                  |                  |
-                  +------------------+------------------+
-                                     |
-                                     v
-                              AI Assistance
-                        Failure Summary / Locator
-                              Suggestions
-                                     |
-                                     v
-                              Zephyr Publish
-```
+---
 
 ## Key Features
 
 ### 1. AI-Assisted Test Planning
+
 - Converts Jira user stories into structured test plans.
 - Generates draft BDD scenarios from acceptance criteria.
-- Identifies potential missing test coverage.
+- Suggests potential test coverage gaps.
 - Supports Anthropic API integration.
-- Provides fallback generation when an API key is unavailable.
+- Provides offline fallback behavior for supported workflows.
 
 ### 2. Human-in-the-Loop Approval
-- AI-generated scenarios are stored in `features/drafts/`.
-- Drafts are excluded from Cucumber execution.
-- A human reviews and approves scenarios through `ai:approve`.
-- Approved scenarios receive the `@reviewed` tag.
-- AI-generated locator suggestions are presented as recommendations, not automatically applied changes.
 
-### 3. Automated BDD Testing
+- Stores AI-generated scenarios in `features/drafts/`.
+- Keeps unapproved drafts outside the executable feature directory.
+- Validates drafts before approval.
+- Requires explicit human confirmation.
+- Adds a `@reviewed` tag and review information to approved scenarios.
+- Presents locator suggestions as recommendations rather than automatically modifying application code.
+
+### 3. BDD Test Automation
+
 - Cucumber.js for behavior-driven development.
 - Playwright for browser automation.
 - TypeScript for test implementation.
-- Page Object Model for reusable page interactions.
-- Accessibility-oriented locators.
+- Page Object Model for reusable interactions.
+- Gherkin scenarios for readable, requirements-based testing.
 - Smoke and full BDD test execution.
 
 ### 4. Visual Regression Testing
-- Playwright screenshot comparisons.
-- Home page and discounted cart visual checks.
-- Screenshot baseline management.
-- Optional Percy integration.
-- Docker-based baseline generation for consistent rendering environments.
 
-### 5. Test Evidence and Reporting
-- Cucumber HTML and JSON reports.
+- Playwright screenshot comparisons.
+- Homepage and discounted-cart visual checks.
+- Screenshot baseline management.
+- Docker-based baseline generation for consistent rendering.
+- Optional Percy integration.
+
+### 5. Requirements Traceability
+
+- Maps acceptance criteria to BDD scenarios.
+- Associates scenarios with Zephyr Scale test cases.
+- Extracts execution status from Cucumber reports.
+- Counts recognized passing and failing assertions.
+- Generates a Markdown traceability report.
+- Identifies missing or incomplete coverage.
+
+Run:
+
+```bash
+npm run traceability
+```
+
+Generated report:
+
+```text
+reports/PROJ-101-traceability.md
+```
+
+### 6. Test Evidence and Reporting
+
+- Cucumber JSON and HTML reports.
 - Playwright HTML reports.
 - Failure screenshots.
-- Playwright traces and videos.
+- Playwright traces and videos when configured.
 - DOM snapshots.
-- AI-generated failure summaries.
+- AI-assisted failure summaries.
 - Locator-fix suggestion reports.
 
-### 6. Jira and Zephyr Scale Integration
-- Fetches Jira stories.
-- Associates BDD scenarios with Jira issue keys.
-- Maps test scenarios to Zephyr Scale test cases.
-- Supports publishing execution results to Zephyr Scale.
+### 7. Jira and Zephyr Scale Integration
 
-### 7. Docker and CI/CD
+- Retrieves Jira user stories.
+- Associates automated scenarios with test management identifiers.
+- Maps BDD scenario tags to Zephyr Scale test cases.
+- Publishes test execution results to Zephyr Scale.
+
+### 8. Docker and CI/CD
+
 - Dockerized test execution.
 - Docker Compose services for BDD, smoke, and visual testing.
 - GitHub Actions pull-request smoke testing.
-- Scheduled full BDD and visual test execution.
-- CI artifact collection.
+- Scheduled BDD and visual test execution.
+- CI artifact collection and test reporting.
 
 ---
 
-## Tech Stack
+## Technology Stack
 
 | Category | Technologies |
 |---|---|
@@ -123,41 +110,49 @@ AI assists with test planning, scenario generation, gap analysis, and failure in
 | Package Management | npm |
 | Reporting | Cucumber Reports, Playwright Reports |
 
+---
+
 ## Quick Start
 
 ### Prerequisites
 
-- Node.js
+- Node.js 20 or later
 - npm
 - Docker Desktop (for containerized execution)
 
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/agentic-test-factory.git
+git clone https://github.com/cjdaprogrammer/agentic-test-factory.git
 cd agentic-test-factory
 ```
 
 ### 2. Install dependencies
 
 ```bash
-npm install
+npm ci
 npx playwright install chromium
 ```
 
 ### 3. Configure environment variables
 
-Create your local `.env` file:
+For Windows CMD:
+
+```cmd
+copy .env.example .env
+```
+
+For PowerShell or macOS/Linux:
 
 ```bash
 cp .env.example .env
 ```
 
-API credentials are optional for basic test execution. Configure the required credentials locally if you want to use the external AI, Jira, or Zephyr integrations.
+Configure optional API credentials for AI, Jira, and Zephyr integrations as required.
 
-**Never commit `.env` or API tokens to GitHub.**
+Never commit `.env` files or API tokens.
 
-### 4. Run the test suites
+### 4. Run TypeScript validation and BDD tests
 
 ```bash
 npm run typecheck
@@ -167,7 +162,7 @@ npm run test:smoke
 
 ### 5. Run visual regression tests
 
-Generate screenshot baselines inside Docker:
+Generate screenshot baselines in Docker:
 
 ```bash
 docker compose run --rm visual-update
@@ -179,21 +174,26 @@ Execute visual comparisons:
 docker compose run --rm visual
 ```
 
-The bundled demo shop in `demo-shop/` starts automatically for local test execution. To test another application, configure `BASE_URL` and adapt the relevant page objects and step definitions.
+The bundled demo shop in `demo-shop/` is used for the default test environment. To test another application, configure `BASE_URL` and adapt the relevant page objects and step definitions.
 
 ---
 
 ## Verified Test Results
 
-The following results have been successfully verified using Docker:
+The following results have been successfully verified:
 
-| Test Suite | Scenarios / Tests | Result |
-|---|---:|---|
-| BDD | 9 scenarios, 54 steps | Passed |
-| Smoke | 3 scenarios, 18 steps | Passed |
-| Visual Regression | 2 tests | Passed |
+| Test Suite | Result |
+|---|---|
+| TypeScript validation | Passed |
+| Full BDD suite | 10 scenarios, 71 steps passed |
+| Smoke suite | 3 scenarios, 18 steps passed |
+| Visual regression | 2 tests passed |
+| Requirements traceability | 8/8 criteria verified |
+| Recognized assertions | 40/40 passed |
 
-**Note:** The smoke suite is a subset of the full BDD suite. These results should not be interpreted as 14 unique scenarios.
+The smoke suite is a subset of the full BDD suite and should not be counted as additional unique scenarios.
+
+**Important:** The traceability result represents the criteria and assertion patterns recognized by the local generator. It does not independently prove complete business-rule coverage.
 
 ### Docker execution
 
@@ -203,15 +203,15 @@ docker compose run --rm smoke
 docker compose run --rm visual
 ```
 
+Docker is the preferred environment for visual regression comparisons because screenshot rendering can differ between operating systems.
+
 ---
 
 ## Portfolio Walkthrough: Jira Story to Automated Tests
 
-The project demonstrates an end-to-end workflow using the example story:
+The demonstration workflow uses:
 
-**PROJ-101 – A shopper can apply a discount code.**
-
-### Step 1: Jira Story
+**PROJ-101 — A shopper can apply a discount code.**
 
 The example story is stored in:
 
@@ -219,13 +219,15 @@ The example story is stored in:
 stories/PROJ-101.md
 ```
 
-A real Jira issue can be retrieved using:
+### Step 1: Retrieve a Jira Story
 
 ```bash
 npm run story:fetch -- PROJ-101
 ```
 
-### Step 2: Generate the Test Plan and BDD Draft
+The integration retrieves the specified Jira issue when valid credentials and configuration are available.
+
+### Step 2: Generate a Test Plan and BDD Draft
 
 ```bash
 npm run ai:plan -- stories/PROJ-101.md
@@ -238,109 +240,156 @@ plans/PROJ-101.plan.md
 features/drafts/PROJ-101.feature
 ```
 
-### Step 3: Identify Test Coverage Gaps
+### Step 3: Analyze Potential Coverage Gaps
 
 ```bash
 npm run ai:gaps
 ```
 
-The gap analysis compares the story requirements with existing feature scenarios. The example intentionally leaves out the requirement concerning only one discount code being applied at a time.
+The gap analysis compares acceptance criteria with existing feature scenarios.
 
-### Step 4: Review and Approve
+The offline fallback uses keyword-based heuristics. Keyword overlap is an indicator for manual review, not proof that a requirement is behaviorally covered.
 
-Review the generated feature file, make any necessary corrections, and approve it:
+### Step 4: Review and Approve the Draft
+
+Review the generated feature file, implement the required steps, and resolve all placeholders before approval.
 
 ```bash
 npm run ai:approve -- features/drafts/PROJ-101.feature
 ```
 
-The approval process requires explicit human confirmation before moving the scenario into the executable feature directory.
+The approval process validates the draft and requires explicit human confirmation before moving it into the executable feature directory.
 
-### Step 5: Execute Automated Tests
+Approval validation does not replace reviewing the scenario's business logic or verifying that its step definitions are implemented correctly.
+
+### Step 5: Execute the BDD Tests
 
 ```bash
 npm run test:bdd
 ```
 
-The execution generates reports and supporting evidence, including screenshots, traces, videos, and DOM snapshots when applicable.
+Cucumber and Playwright execute the feature scenarios and generate test reports and supporting evidence.
 
-### Step 6: Analyze Failures
+### Step 6: Generate Requirements Traceability
 
-Generate an AI-assisted failure summary:
+```bash
+npm run traceability
+```
+
+The generator maps acceptance criteria to scenario tags, recognized assertions, execution results, and Zephyr test-case identifiers.
+
+### Step 7: Investigate Failures
 
 ```bash
 npm run ai:summarize
-```
-
-Generate locator-fix suggestions:
-
-```bash
 npm run ai:locator-fix
 ```
 
-Both scripts produce recommendations for human review.
+These scripts generate failure summaries and locator recommendations when relevant failure data is available.
 
-### Step 7: Publish Test Results
+The generated recommendations require human review. They do not automatically modify page objects or repair tests.
+
+### Step 8: Publish Test Results
 
 ```bash
 npm run zephyr:publish
 ```
 
-The integration supports mapping scenario tags to Zephyr Scale test cases. Without the required token, it runs in dry-run mode.
+The integration maps scenario tags to Zephyr Scale test cases and publishes execution results when the required configuration and credentials are available.
 
 ---
 
-## AI Assistant and Guardrails
+## Requirements and Zephyr Traceability
 
-The AI implementation is located in:
+The demonstration feature uses acceptance-criteria tags and Zephyr test-case tags to connect requirements with executable tests.
+
+### Acceptance Criteria Mapping
+
+| Acceptance Criterion | Zephyr Test Case |
+|---|---|
+| AC-TC01 — Percentage discount | ATF-T1 |
+| AC-TC02 — Fixed discount and minimum spend | ATF-T2, ATF-T3 |
+| AC-TC03 — Invalid code | ATF-T4 |
+| AC-TC04 — Expired code | ATF-T4 |
+| AC-TC05 — Case-insensitive codes | ATF-T5 |
+| AC-TC06 — One code per order | ATF-T8 |
+| AC-TC07 — Remove applied discount | ATF-T6 |
+| AC-TC08 — Empty cart restriction | ATF-T7 |
+
+### Tag Conventions
+
+| Tag | Purpose |
+|---|---|
+| `@ATF-1` | Feature-level identifier |
+| `@ATF-T1` through `@ATF-T8` | Zephyr Scale test-case associations |
+| `@AC-TC01` through `@AC-TC08` | Acceptance-criteria associations |
+| `@smoke` | Identifies smoke-test scenarios |
+| `@ai-draft` | Identifies unapproved AI-generated scenarios |
+| `@reviewed` | Identifies human-approved scenarios |
+
+### Traceability Report
+
+The generator produces:
+
+```text
+reports/PROJ-101-traceability.md
+```
+
+The report includes:
+
+- Acceptance-criteria coverage.
+- Associated Zephyr test cases.
+- Scenario execution status.
+- Recognized assertion evidence.
+- Passing and failing assertion counts.
+- Coverage limitations.
+
+**Important:** Traceability is derived from scenario tags and recognized assertion patterns in the local Cucumber report. It does not independently query Zephyr or prove complete business-rule coverage.
+
+---
+
+## AI Implementation and Responsible AI
+
+AI-related functionality is located in:
 
 ```text
 ai/
 ```
 
-The project uses `ai/llm.ts` to call the Anthropic Messages API when `ANTHROPIC_API_KEY` is configured.
+The project uses `ai/llm.ts` to integrate with the Anthropic Messages API when `ANTHROPIC_API_KEY` is configured.
 
-Without an API key, the scripts provide fallback behavior:
+### Implemented AI-Assisted Workflows
 
-- Test plans and drafts are generated from acceptance criteria.
-- Gap analysis uses a keyword-based heuristic.
-- Failure summaries provide raw failure information.
+- Test-plan and BDD draft generation.
+- Potential coverage-gap suggestions.
+- Failure summarization.
+- Locator-fix recommendations.
+- Human-controlled draft approval.
 
-### Responsible AI Practices
+### Offline Fallback Behavior
 
-- Story content, DOM data, and error output are treated as untrusted input.
-- Prompts instruct the AI not to follow instructions embedded in untrusted data.
-- AI-generated scenarios remain outside the executable feature directory until approved.
-- Locator suggestions are documented rather than automatically applied.
-- Approved scenarios include the `@reviewed` tag and a review comment.
+When an API key is unavailable, supported scripts provide fallback behavior.
 
----
+- Test planning and draft generation use acceptance-criteria-based generation.
+- Gap analysis uses keyword-based heuristics.
+- Failure summarization can report raw failure information.
+- Locator suggestions can report when no locator-style failures are found.
 
-## Traceability Tags
+The offline fallback does not provide the same capabilities as a live AI model.
 
-| Tag | Purpose |
-|---|---|
-| `@PROJ-101` | Jira issue key assigned to a feature |
-| `@PROJ-T101` | Zephyr Scale test case key assigned to a scenario |
-| `@smoke` | Identifies scenarios included in smoke testing |
-| `@ai-draft` | Identifies AI-generated scenarios awaiting review |
-| `@reviewed` | Identifies scenarios approved by a human |
+### Human Oversight and Guardrails
 
-Replace the `PROJ` prefix with your actual Jira project key.
-
-The Zephyr integration is implemented in:
-
-```text
-integrations/zephyr.ts
-```
-
-It targets the Zephyr Scale Cloud API. Adjust endpoint details and field mappings if your Jira and Zephyr configuration differs.
+- Story content, DOM information, and error output are treated as untrusted input.
+- AI-generated scenarios remain outside executable features until approved.
+- Draft validation rejects unreviewed `@ai-draft` tags and unresolved TODO/TBD placeholders.
+- Human review is required before approval.
+- Locator suggestions are recommendations, not automatic code changes.
 
 ---
 
 ## Visual Testing
 
-The project includes two visual testing approaches.
+The project includes Playwright screenshot comparisons and optional Percy integration.
 
 ### Playwright Screenshot Assertions
 
@@ -350,12 +399,12 @@ File:
 tests/visual.spec.ts
 ```
 
-Includes screenshot comparisons for:
+The suite includes visual checks for:
 
 - E-commerce homepage.
-- Shopping cart after applying a discount code.
+- Shopping cart after applying a discount.
 
-Generate baselines using Docker:
+Generate screenshot baselines:
 
 ```bash
 docker compose run --rm visual-update
@@ -375,13 +424,15 @@ File:
 tests/percy.spec.ts
 ```
 
-Run Percy snapshots with:
+Run Percy snapshots:
 
 ```bash
-PERCY_TOKEN=your_token npm run test:percy
+npm run test:percy
 ```
 
-Percy requires a configured account and token.
+Percy requires a configured account and `PERCY_TOKEN`.
+
+The standard Playwright visual suite excludes Percy-tagged tests. Percy snapshots are executed separately using `npm run test:percy`.
 
 ---
 
@@ -391,7 +442,7 @@ Percy requires a configured account and token.
 
 | Service | Purpose |
 |---|---|
-| `bdd` | Runs the complete BDD suite |
+| `bdd` | Runs the full BDD suite |
 | `smoke` | Runs smoke-tagged scenarios |
 | `visual` | Executes visual regression tests |
 | `visual-update` | Updates screenshot baselines |
@@ -413,7 +464,13 @@ docker compose run --rm visual-update
 .github/workflows/pr-smoke.yml
 ```
 
-Runs type checking and smoke tests on pull requests.
+On pull requests, this workflow:
+
+- Installs Node.js dependencies.
+- Installs Playwright Chromium.
+- Runs TypeScript validation.
+- Executes smoke-tagged BDD scenarios.
+- Uploads reports as a GitHub Actions artifact.
 
 **Nightly Workflow**
 
@@ -421,23 +478,37 @@ Runs type checking and smoke tests on pull requests.
 .github/workflows/nightly.yml
 ```
 
-Configured to run the broader BDD and visual test suites, AI-assisted reporting, Zephyr publishing, and artifact collection on a schedule.
+Runs daily at **02:00 Philippine time (UTC+8)**, with manual execution also available.
 
-Configure the required GitHub repository secrets and variables before enabling external integrations.
+The workflow:
 
-Suggested secrets:
+- Executes the complete BDD suite.
+- Runs visual regression tests.
+- Generates AI-assisted failure summaries and locator suggestions.
+- Publishes test results to Zephyr Scale.
+- Uploads reports as a GitHub Actions artifact.
 
-- `ANTHROPIC_API_KEY`
-- `ZEPHYR_API_TOKEN`
+The visual, AI reporting, Zephyr publishing, and artifact upload steps are configured to run even when an earlier test step fails.
 
-Suggested variables:
+### GitHub Actions Configuration
 
-- `ZEPHYR_PROJECT_KEY`
-- `ZEPHYR_TEST_CYCLE_KEY`
+Configure the following repository secrets and variables before using external integrations.
 
-Use GitHub Actions secrets for sensitive credentials. Never hardcode tokens in workflow files.
+**Secrets**
 
-**Version consistency:** Keep the Playwright version synchronized across `package.json`, `Dockerfile`, and the CI workflow.
+| Secret | Purpose |
+|---|---|
+| `ANTHROPIC_API_KEY` | Optional AI integration |
+| `ZEPHYR_API_TOKEN` | Zephyr Scale authentication token |
+
+**Variables**
+
+| Variable | Example |
+|---|---|
+| `ZEPHYR_PROJECT_KEY` | `ATF` |
+| `ZEPHYR_TEST_CYCLE_KEY` | `ATF-R1` |
+
+Use GitHub Actions secrets for sensitive credentials. Never hardcode API tokens in workflow files or commit them to GitHub.
 
 ---
 
@@ -457,31 +528,32 @@ agentic-test-factory/
 │   ├── suggest-gaps.ts
 │   ├── approve-draft.ts
 │   ├── summarize-failures.ts
-│   └── suggest-locator-fix.ts
+│   ├── suggest-locator-fix.ts
+│   └── generate-traceability.ts
 │
 ├── demo-shop/
-│   └── public/
-│
-├── stories/
-│   └── PROJ-101.md
-│
-├── plans/
 │
 ├── features/
 │   ├── drafts/
-│   └── step-definitions/
-│
-├── pages/
+│   ├── step_definitions/
+│   └── support/
 │
 ├── integrations/
 │   ├── jira.ts
 │   └── zephyr.ts
 │
+├── pages/
+│
+├── plans/
+│
+├── reports/
+│
+├── stories/
+│   └── PROJ-101.md
+│
 ├── tests/
 │   ├── visual.spec.ts
 │   └── percy.spec.ts
-│
-├── reports/
 │
 ├── utils/
 │
@@ -500,18 +572,6 @@ agentic-test-factory/
 
 ---
 
-## Why Cucumber.js Instead of TestNG?
-
-This project uses TypeScript and Playwright, making Cucumber.js a natural choice for its BDD implementation.
-
-Cucumber.js integrates with the TypeScript-based automation framework and supports readable Gherkin scenarios.
-
-TestNG is primarily used in Java-based automation projects, such as Java and Appium testing frameworks.
-
-Both frameworks support structured automated testing, but they belong to different technology stacks.
-
----
-
 ## Project Objective
 
 This project demonstrates how AI-assisted workflows can support practical QA engineering activities without removing human responsibility from test design and approval.
@@ -523,8 +583,9 @@ It brings together:
 - BDD scenario development.
 - Browser automation.
 - Visual regression testing.
+- Requirements traceability.
 - Test evidence and reporting.
-- Test management integration.
+- Jira and Zephyr Scale integration.
 - Containerized execution.
 - CI/CD automation.
 - Human-reviewed AI assistance.

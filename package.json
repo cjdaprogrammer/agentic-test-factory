@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "description": "Agentic E-commerce Test Factory: Jira story -> AI-proposed plan -> reviewed BDD scenarios -> automated run -> report",
   "private": true,
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "shop": "ts-node demo-shop/server.ts",
     "test:bdd": "cucumber-js",
-    "test:smoke": "cucumber-js --tags @smoke",
+    "test:smoke": "cucumber-js --profile smoke",
     "test:visual": "playwright test --grep-invert @percy",
     "test:visual:update": "playwright test --grep-invert @percy --update-snapshots",
     "test:percy": "percy exec -- playwright test --grep @percy",

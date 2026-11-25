@@ -14,6 +14,7 @@ function validateDraft(content: string): string[] {
 
   if (!content.trim()) {
     errors.push('Draft is empty.');
+    return errors;
   }
 
   if (!/^\s*Feature:/m.test(content)) {
@@ -31,6 +32,42 @@ function validateDraft(content: string): string[] {
   if (/\b(?:TODO|TBD)\b/i.test(content)) {
     errors.push('TODO/TBD placeholders must be resolved.');
   }
+
+  // Every scenario must contain at least one executable Gherkin step.
+  const lines = content.split(/\r?\n/);
+  let currentScenario = '';
+  let hasExecutableStep = false;
+
+  const checkScenario = () => {
+    if (currentScenario && !hasExecutableStep) {
+      errors.push(
+        `Scenario "${currentScenario}" has no executable Gherkin steps.`,
+      );
+    }
+  };
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+
+    const scenarioMatch = line.match(
+      /^Scenario(?: Outline)?:\s*(.+)$/i,
+    );
+
+    if (scenarioMatch) {
+      checkScenario();
+      currentScenario = scenarioMatch[1].trim();
+      hasExecutableStep = false;
+      continue;
+    }
+
+    if (/^(Given|When|Then|And|But)\s+/i.test(line)) {
+      if (currentScenario) {
+        hasExecutableStep = true;
+      }
+    }
+  }
+
+  checkScenario();
 
   return errors;
 }

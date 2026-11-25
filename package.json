@@ -17,6 +17,7 @@
     "ai:approve": "ts-node ai/approve-draft.ts",
     "ai:summarize": "ts-node ai/summarize-failures.ts",
     "ai:locator-fix": "ts-node ai/suggest-locator-fix.ts",
+    "traceability": "ts-node ai/generate-traceability.ts",
     "zephyr:publish": "ts-node integrations/zephyr.ts",
     "typecheck": "tsc --noEmit"
   },

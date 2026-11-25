@@ -27,6 +27,10 @@ Then('I should see the message {string}', async function (this: ShopWorld, messa
   await expect(this.cart.message).toHaveText(message);
 });
 
+Then('the subtotal should be {string}', async function (this: ShopWorld, amount: string) {
+  await expect(this.cart.subtotal).toHaveText(amount);
+});
+
 Then('the discount should be {string}', async function (this: ShopWorld, amount: string) {
   await expect(this.cart.discount).toHaveText(amount);
 });
